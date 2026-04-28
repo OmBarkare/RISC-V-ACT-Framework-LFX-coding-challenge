@@ -23,4 +23,7 @@ int main() {
 
     // for non-blocking behaviour
     t.c_cc[VMIN] = 0;
+
+    // clear stop bit to have 1 stob bit
+    t.c_cflag &= ~(CSTOPB);
 }
