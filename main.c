@@ -3,22 +3,24 @@
 #include <termios.h>
 
 int main() {
+
     int fd = open("/dev/ttyS0", O_RDWR);
-
-    struct termios t;
-    tty_config(&t, fd);
-}
-
-
-void tty_config(struct termios *t, int fd) {
 
     if(fd < 0) {
         perror("unable to open /dev/ttsy0");
         return -1;
     }
 
+
+    struct termios t;
     // copy current configuration to tty
-    tcgetattr(fd, t);
+    tcgetattr(fd, &t);
+    tty_config(&t);
+    tcsetattr(fd, TCSANOW, &t);
+}
+
+
+void tty_config(struct termios *t) {
 
     // disbale translation and flow control
     // disapble post processing
@@ -32,4 +34,8 @@ void tty_config(struct termios *t, int fd) {
 
     // clear stop bit to have 1 stob bit
     t->c_cflag &= ~(CSTOPB);
+
+    // set baudrate
+    cfsetispeed(t, B115200);
+    cfsetospeed(t, B115200);
 }
