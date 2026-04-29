@@ -2,6 +2,8 @@
 #include <fcntl.h>
 #include <termios.h>
 
+int tty_config(struct termios *t);
+
 int main() {
 
     int fd = open("/dev/ttyS0", O_RDWR);
@@ -14,13 +16,21 @@ int main() {
 
     struct termios t;
     // copy current configuration to tty
-    tcgetattr(fd, &t);
-    tty_config(&t);
-    tcsetattr(fd, TCSANOW, &t);
+    if (tcgetattr(fd, &t) < 0) {
+        perror("tcgetattr");
+        return -1;
+    }
+    if (tty_config(&t) < 0) {
+        fprintf(stderr, "could not conplete tty_config");
+    }
+
+    if (tcsetattr(fd, TCSANOW, &t) < 0) {
+        perror("tcsetattr");
+    }
 }
 
 
-void tty_config(struct termios *t) {
+int tty_config(struct termios *t) {
 
     // disbale translation and flow control
     // disapble post processing
@@ -36,6 +46,12 @@ void tty_config(struct termios *t) {
     t->c_cflag &= ~(CSTOPB);
 
     // set baudrate
-    cfsetispeed(t, B115200);
-    cfsetospeed(t, B115200);
+    if (cfsetispeed(t, B115200) < 0) {
+        perror("cfsetispeed");
+        return -1;
+    }
+    if (cfsetospeed(t, B115200) < 0) {
+        perror("cfsetospeed");
+        return -1;
+    }
 }
