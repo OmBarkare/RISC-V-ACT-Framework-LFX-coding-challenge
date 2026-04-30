@@ -6,10 +6,10 @@ int tty_config(struct termios *t);
 
 int main() {
 
-    int fd = open("/dev/ttyS0", O_RDWR);
+    int fd = open("/tmp/ttyS0", O_RDWR);
 
     if(fd < 0) {
-        perror("unable to open /dev/ttsy0");
+        perror("unable to open /tmp/tty0");
         return -1;
     }
 
@@ -54,4 +54,9 @@ int tty_config(struct termios *t) {
         perror("cfsetospeed");
         return -1;
     }
+
+    // enable receiver and ignore modem control signals
+    t->c_cflag |= (CREAD | CLOCAL);
+
+    return 0;
 }
