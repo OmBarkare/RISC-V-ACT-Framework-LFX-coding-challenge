@@ -14,7 +14,6 @@ int main() {
     int fd = open(file_path, O_RDWR);
 
     if(fd < 0) {
-        
         fprintf(stderr, "failed to open serial device\n");
         perror(file_path);
         return -1;
@@ -25,22 +24,29 @@ int main() {
     // copy current configuration to tty
     if (tcgetattr(fd, &t) < 0) {
         perror("tcgetattr");
+        close(fd);
         return -1;
     }
     // apply required config over copied config
     if (tty_config(&t) < 0) {
         fprintf(stderr, "tty_config failed\n");
+        close(fd);
         return -1;
     }
     // set config 
     if (tcsetattr(fd, TCSANOW, &t) < 0) {
         perror("tcsetattr");
+        close(fd);
         return -1;
     }
 
     // writing to the serial device
     char *str = "Hello from main";
-    write(fd, str, strlen(str));
+    if (write(fd, str, strlen(str)) < 0) {
+        perror("could not write to device");
+        close(fd);
+        return -1;
+    };
 
     // polling for response
     struct pollfd p;
@@ -58,14 +64,39 @@ int main() {
             printf("device not ready for I/O\n");
         }
 
+        if(p.revents & POLLHUP) {
+            fprintf(stderr, "device disconnected\n");
+            close(fd);
+            return -1;
+        }
+
+        if(p.revents & POLLERR) {
+            fprintf(stderr, "device error\n");
+            close(fd);
+            return -1;
+        }
+
         if(p.revents & POLLIN) {
             char write_buf[100];
-            int n = read(fd, write_buf, 100);
+            int n_r = read(fd, write_buf, 100);
+            if (n_r < 0) {
+                perror("could not read from device");
+                close(fd);
+                return -1;
+            } else if (n_r == 0) {
+                fprintf(stdout, "read EOF\n");
+                break;
+            }
             printf("message:\n");
-            write(1, write_buf, n);
+            int n_w = write(1, write_buf, n_r);
+            printf("\n");
+            if (n_w < 0) {
+                perror("could not write");
+            }
         }
     }
 
+    close(fd);
     return 0;
 }
 
