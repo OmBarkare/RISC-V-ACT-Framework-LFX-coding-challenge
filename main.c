@@ -10,10 +10,13 @@ int tty_config(struct termios *t);
 
 int main() {
 
-    int fd = open("/tmp/tty0", O_RDWR);
+    const char *file_path = "/tmp/tty0";
+    int fd = open(file_path, O_RDWR);
 
     if(fd < 0) {
-        perror("unable to open /tmp/tty0");
+        
+        fprintf(stderr, "failed to open serial device\n");
+        perror(file_path);
         return -1;
     }
 
@@ -26,15 +29,17 @@ int main() {
     }
     // apply required config over copied config
     if (tty_config(&t) < 0) {
-        fprintf(stderr, "could not conplete tty_config");
+        fprintf(stderr, "tty_config failed\n");
+        return -1;
     }
     // set config 
     if (tcsetattr(fd, TCSANOW, &t) < 0) {
         perror("tcsetattr");
+        return -1;
     }
 
     // writing to the serial device
-    char *str = "Hello from C";
+    char *str = "Hello from main";
     write(fd, str, strlen(str));
 
     // polling for response
@@ -47,10 +52,10 @@ int main() {
         printf("poll returned: %d with revents: %d\n", ret, p.revents);
         
         if(ret < 0) {
-            perror("polling failed\n");
+            perror("polling failed");
             break;
         } else if (ret == 0) {
-            printf("no device ready for I/O\n");
+            printf("device not ready for I/O\n");
         }
 
         if(p.revents & POLLIN) {
@@ -60,6 +65,8 @@ int main() {
             write(1, write_buf, n);
         }
     }
+
+    return 0;
 }
 
 
