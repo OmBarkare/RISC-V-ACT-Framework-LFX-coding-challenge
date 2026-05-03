@@ -1,12 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <string.h>
+#include <poll.h>
 
 int tty_config(struct termios *t);
 
 int main() {
 
-    int fd = open("/tmp/ttyS0", O_RDWR);
+    int fd = open("/tmp/tty0", O_RDWR);
 
     if(fd < 0) {
         perror("unable to open /tmp/tty0");
@@ -20,12 +24,41 @@ int main() {
         perror("tcgetattr");
         return -1;
     }
+    // apply required config over copied config
     if (tty_config(&t) < 0) {
         fprintf(stderr, "could not conplete tty_config");
     }
-
+    // set config 
     if (tcsetattr(fd, TCSANOW, &t) < 0) {
         perror("tcsetattr");
+    }
+
+    // writing to the serial device
+    char *str = "Hello from C";
+    write(fd, str, strlen(str));
+
+    // polling for response
+    struct pollfd p;
+    p.fd = fd;
+    p.events = POLLIN;
+
+    while(1) {
+        int ret = poll(&p, 1, 3000);
+        printf("poll returned: %d with revents: %d\n", ret, p.revents);
+        
+        if(ret < 0) {
+            perror("polling failed\n");
+            break;
+        } else if (ret == 0) {
+            printf("no device ready for I/O\n");
+        }
+
+        if(p.revents & POLLIN) {
+            char write_buf[100];
+            int n = read(fd, write_buf, 100);
+            printf("message:\n");
+            write(1, write_buf, n);
+        }
     }
 }
 
