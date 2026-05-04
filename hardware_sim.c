@@ -2,6 +2,7 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 int main() {
     int fd = open("/tmp/ttyHw", O_RDWR);
@@ -22,10 +23,24 @@ int main() {
         }
 
         if (p.revents & POLLIN) {
-            char read_buf[100];
-            int n = read(fd, read_buf, 100);
-            printf("mssg received, sending response\n");
-            write(fd, "ILU", 3);
+            char recv_buf[100];
+            int n = read(fd, recv_buf, 99);
+            recv_buf[n] = '\0';
+            
+            if (strcmp(recv_buf, "ILU TOO") == 0) {
+                if (write(fd, ":)", 2) < 0) {
+                    perror("could not write");
+                }
+                printf("mssg received: %s,\nsending response: %s\n", recv_buf, ":)");
+            } else if(strcmp(recv_buf, "I AM HERE") == 0) {
+                if (write(fd, "OK", 2) < 0) {
+                    perror("could not write");
+                }
+                printf("mssg received: %s,\nsending response: %s\n", recv_buf, "OK");
+            } else {
+                write(fd, "ILU", 3);
+                printf("mssg received: %s,\nsending response: %s\n", recv_buf, "ILU");
+            }
         }
     }
 }

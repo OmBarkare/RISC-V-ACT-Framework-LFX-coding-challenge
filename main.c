@@ -11,7 +11,7 @@ int tty_config(struct termios *t);
 int main() {
 
     const char *file_path = "/tmp/tty0";
-    int fd = open(file_path, O_RDWR);
+    int fd = open(file_path, O_RDWR | O_NOCTTY);
 
     if(fd < 0) {
         fprintf(stderr, "failed to open serial device\n");
@@ -77,8 +77,9 @@ int main() {
         }
 
         if(p.revents & POLLIN) {
-            char write_buf[100];
-            int n_r = read(fd, write_buf, 100);
+            char recv_buf[100];
+            int n_r = read(fd, recv_buf, 99);
+
             if (n_r < 0) {
                 perror("could not read from device");
                 close(fd);
@@ -87,11 +88,18 @@ int main() {
                 fprintf(stdout, "read EOF\n");
                 break;
             }
-            printf("message:\n");
-            int n_w = write(1, write_buf, n_r);
-            printf("\n");
-            if (n_w < 0) {
-                perror("could not write");
+
+            recv_buf[n_r] = '\0';
+            printf("message: %s\n", recv_buf);
+
+            if (strcmp(recv_buf, "ILU") == 0) {
+                if (write(fd, "ILU TOO", 7) < 0) {
+                    perror("could not write to device");
+                }
+            } else if (strcmp(recv_buf, "ARE U THERE") == 0) {
+                if (write(fd, "I AM HERE", 9) < 0) {
+                    perror("could not write to device");
+                }
             }
         }
     }
