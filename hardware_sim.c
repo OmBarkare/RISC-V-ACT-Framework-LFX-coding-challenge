@@ -47,12 +47,11 @@ int main() {
 
         if (ret < 0) {
             perror("poll error");
-            break; // <--------------- do i return?
+            break;
         } else if (ret == 0) {
             printf("no mssg from laptop\n");
             if (write(fd, "ARE U THERE", 11) < 0) {
                 perror("write failed");
-                // <----------------- do I return?
             }
         }
 
