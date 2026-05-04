@@ -49,10 +49,11 @@ int main() {
             perror("poll error");
             break;
         } else if (ret == 0) {
-            printf("no mssg from laptop\n");
-            if (write(fd, "ARE U THERE", 11) < 0) {
+            printf("pinging laptop\n");
+            if (write(fd, "PING", 4) < 0) {
                 perror("write failed");
             }
+            continue;
         }
 
         if (p.revents & POLLIN) {
@@ -69,21 +70,16 @@ int main() {
             }
             recv_buf[n] = '\0';
             
-            if (strcmp(recv_buf, "ILU TOO") == 0) {
-                if (write(fd, ":)", 2) < 0) {
+            if (strcmp(recv_buf, "PONG") == 0) {
+                if (write(fd, "ACK", 3) < 0) {
                     perror("could not write");
                 }
-                printf("mssg received: %s,\nsending response: %s\n", recv_buf, ":)");
-            } else if(strcmp(recv_buf, "I AM HERE") == 0) {
+                printf("mssg received: %s,\nsending response: %s\n", recv_buf, "ACK");
+            } else if(strcmp(recv_buf, "HELLO") == 0) {
                 if (write(fd, "OK", 2) < 0) {
                     perror("could not write");
                 }
                 printf("mssg received: %s,\nsending response: %s\n", recv_buf, "OK");
-            } else {
-                if (write(fd, "ILU", 3) < 0) {
-                    perror("could not write");
-                }
-                printf("mssg received: %s,\nsending response: %s\n", recv_buf, "ILU");
             }
         }
     }

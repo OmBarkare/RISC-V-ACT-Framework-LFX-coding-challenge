@@ -63,7 +63,7 @@ int main() {
     printf("VTIME: %d\n", check.c_cc[VTIME]);
 
     // writing to the serial device
-    char *str = "Hello from main";
+    char *str = "HELLO";
     if (write(fd, str, strlen(str)) < 0) {
         perror("could not write to device");
         close(fd);
@@ -125,16 +125,16 @@ int main() {
             printf("message received: %s\n", recv_buf);
 
             // communication protocol
-            if (strcmp(recv_buf, "ILU") == 0) {
-                printf("sending response: ILU TOO");
-                if (write(fd, "ILU TOO", 7) < 0) {
+            if (strcmp(recv_buf, "PING") == 0) {
+                printf("sending response: PONG");
+                if (write(fd, "PONG", 4) < 0) {
                     perror("could not write to device");
                 }
                 printf("\n");
             }
-            else if (strcmp(recv_buf, "ARE U THERE") == 0) {
-                printf("sending response: I AM HERE");
-                if (write(fd, "I AM HERE", 9) < 0) {
+            else if (strcmp(recv_buf, "OK") == 0) {
+                printf("sending response: READY");
+                if (write(fd, "READY", 5) < 0) {
                     perror("could not write to device");
                 }
                 printf("\n");
