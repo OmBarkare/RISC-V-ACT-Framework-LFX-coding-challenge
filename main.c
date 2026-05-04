@@ -104,18 +104,22 @@ int main() {
 
             // terminate the buffer with null character for strcmp and printf
             recv_buf[n_r] = '\0';
-            printf("message: %s\n", recv_buf);
+            printf("message received: %s\n", recv_buf);
 
             // communication protocol
             if (strcmp(recv_buf, "ILU") == 0) {
+                printf("sending response: ILU TOO");
                 if (write(fd, "ILU TOO", 7) < 0) {
                     perror("could not write to device");
                 }
+                printf("\n");
             }
             else if (strcmp(recv_buf, "ARE U THERE") == 0) {
+                printf("sending response: I AM HERE");
                 if (write(fd, "I AM HERE", 9) < 0) {
                     perror("could not write to device");
                 }
+                printf("\n");
             }
         }
     }
@@ -127,15 +131,13 @@ int main() {
 
 int tty_config(struct termios *t) {
 
-    // disbale translation and flow control
-    // disapble post processing
     // disable canonical mode, signals, echo, extensions
     // disable parity and set data size to 8 bit
     // set VMIN = 1, VTIME = 0
     cfmakeraw(t);
 
-    // for non-blocking behaviour, read() returns even if
-    // 0 bytes are read
+    // override VMIN = 1 for non-blocking behaviour,
+    // read() returns even if 0 bytes are read
     t->c_cc[VMIN] = 0;
 
     // clear stop bit flag to have only 1 terminating stop bit
