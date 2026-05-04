@@ -4,7 +4,7 @@
 - configure UART parameters using `termios` API
 - transmit test message over the UART interface
 - receive incoming data using poll() and immediate returning read()
-- respond to incoming message according simple application level protocol
+- respond to incoming message according to simple application level protocol
 - gracefully handle configuration, read/write and polling errors
 
 ## How to Run
