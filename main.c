@@ -7,6 +7,7 @@
 #include <poll.h>
 
 int tty_config(struct termios *t);
+int baud_from_speed(speed_t speed);
 
 int main() {
 
@@ -45,6 +46,22 @@ int main() {
         return -1;
     }
 
+    // check if config was set
+    struct termios check;
+    if (tcgetattr(fd, &check) < 0) {
+        perror("tcgetaddr check");
+        close(fd);
+        return -1;
+    }
+
+    // print configuration by reading it from fd, to check if
+    // it has been set correctly
+    printf("UART CONFIG:\n");
+    printf("baud rate input: %d,\nbaud rate output: %d,\n",
+        baud_from_speed(cfgetispeed(&check)), baud_from_speed(cfgetospeed(&check)));
+    printf("VMIN: %d,\n", check.c_cc[VMIN]);
+    printf("VTIME: %d\n", check.c_cc[VTIME]);
+
     // writing to the serial device
     char *str = "Hello from main";
     if (write(fd, str, strlen(str)) < 0) {
@@ -53,11 +70,12 @@ int main() {
         return -1;
     };
 
-    // polling for readiness of fd
+    // setting poll up for readiness of fd
     struct pollfd p;
     p.fd = fd;
     p.events = POLLIN;
 
+    // polling loop
     while(1) {
         int ret = poll(&p, 1, 3000);
         #ifdef DEBUG
@@ -136,7 +154,7 @@ int tty_config(struct termios *t) {
     // set VMIN = 1, VTIME = 0
     cfmakeraw(t);
 
-    // override VMIN = 1 for non-blocking behaviour,
+    // override VMIN with 0 for non-blocking behaviour,
     // read() returns even if 0 bytes are read
     t->c_cc[VMIN] = 0;
 
@@ -157,4 +175,18 @@ int tty_config(struct termios *t) {
     t->c_cflag |= (CREAD | CLOCAL);
 
     return 0;
+}
+
+int baud_from_speed(speed_t speed) {
+    int baud;
+    switch(speed) {
+    case B1200:   baud = 1200;   break;
+    case B9600:   baud = 9600;   break;
+    case B57600:  baud = 57600;  break;
+    case B115200: baud = 115200; break;
+    case B230400: baud = 230400; break;
+    default:      baud = -1;     break;
+    }
+
+    return baud;
 }
