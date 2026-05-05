@@ -21,8 +21,8 @@ sudo apt install socat
 2. compile `main.c` and `hardware_sim.c`:
 go into the project directory and then compile 
 ```bash
-gcc main.c -o ./main
-gcc hardware_sim.c -o ./hardware_sim
+gcc main.c -o main
+gcc hardware_sim.c -o hardware_sim
 ```
 
 3. start socat:
