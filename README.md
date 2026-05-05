@@ -21,8 +21,8 @@ sudo apt install socat
 2. compile `main.c` and `hardware_sim.c`:
 go into the project directory and then compile 
 ```bash
-gcc main.c -o ./build/main
-gcc hardware_sim.c -o ./build/hardware_sim
+gcc main.c -o ./main
+gcc hardware_sim.c -o ./hardware_sim
 ```
 
 3. start socat:
@@ -34,12 +34,12 @@ if you want debug to be on in socat, you can run it with the `-dd` flag
 4. run `main` and `hardware_sim`:
 then in a new terminal instance run
 ```bash
-./build/main
+./main
 ```
 
 again in another terminal instance run
 ```bash
-./build/hardware_sim
+./hardware_sim
 ```
 make sure the working directory for terminals is the project directory to run using these exact commands
 
